@@ -117,7 +117,12 @@ class AuthorisationWebhookHandler implements WebhookHandlerInterface
         $isFullAmountAuthorized = $this->adyenOrderPaymentHelper->isFullAmountAuthorized($order);
 
         if ($isFullAmountAuthorized) {
-            $order = $this->orderHelper->setPrePaymentAuthorized($order);
+            // If the payment method is a credit card, change the order status to "Credit Card Hold"
+            if ($order->getPayment()->getMethod() === 'adyen_cc') {
+                $order = $this->orderHelper->setCreditCardHoldStatus($order);
+            } else {
+                $order = $this->orderHelper->setPrePaymentAuthorized($order);
+            }
             $this->orderHelper->updatePaymentDetails($order, $notification);
 
             $additionalData = !empty($notification->getAdditionalData()) ? $this->serializer->unserialize($notification->getAdditionalData()) : [];

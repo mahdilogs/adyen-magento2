@@ -30,6 +30,7 @@ use Magento\Framework\Serialize\SerializerInterface;
 use Magento\Framework\Stdlib\DateTime\TimezoneInterface;
 use Magento\Sales\Model\Order;
 use Magento\Sales\Model\OrderRepository;
+use Adyen\Payment\Model\OrderStatusConstants;
 
 class Webhook
 {
@@ -41,7 +42,8 @@ class Webhook
         Order::STATE_COMPLETE => PaymentStates::STATE_PAID,
         Order::STATE_CANCELED => PaymentStates::STATE_CANCELLED,
         Order::STATE_CLOSED => PaymentStates::STATE_REFUNDED,
-        NotificationEntity::STATE_ADYEN_AUTHORIZED => PaymentStates::STATE_PENDING
+        NotificationEntity::STATE_ADYEN_AUTHORIZED => PaymentStates::STATE_PENDING,
+        OrderStatusConstants::CREDIT_CARD_HOLD_STATE => PaymentStates::STATE_PENDING,
     ];
 
     /**
@@ -49,7 +51,8 @@ class Webhook
      */
     const STATE_TRANSITION_MATRIX = [
         'payment_pre_authorized' => [Order::STATE_NEW, PreAuthorized::STATE_ADYEN_AUTHORIZED],
-        'payment_authorized' => [Order::STATE_PROCESSING]
+        'payment_authorized' => [Order::STATE_PROCESSING],
+        OrderStatusConstants::CREDIT_CARD_HOLD_STATUS => [Order::STATE_NEW, OrderStatusConstants::CREDIT_CARD_HOLD_STATE]
     ];
 
     /**

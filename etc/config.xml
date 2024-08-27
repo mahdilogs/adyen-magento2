@@ -30,6 +30,7 @@
                 <webhook_notification_processor>cron</webhook_notification_processor>
                 <adyen_support_email_address>support@adyen.com</adyen_support_email_address>
                 <payment_pre_authorized>adyen_authorized</payment_pre_authorized>
+                <credit_card_hold>credit_card_hold</credit_card_hold>
                 <payment_authorized>processing</payment_authorized>
                 <payment_cancelled>canceled</payment_cancelled>
                 <capture_for_openinvoice>manual</capture_for_openinvoice>

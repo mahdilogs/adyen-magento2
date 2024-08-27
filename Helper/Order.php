@@ -32,6 +32,7 @@ use Magento\Sales\Model\Order\Email\Sender\OrderSender;
 use Magento\Sales\Model\Order\Payment\Transaction\Builder;
 use Magento\Sales\Model\OrderRepository;
 use Magento\Sales\Model\ResourceModel\Order\Status\CollectionFactory as OrderStatusCollectionFactory;
+use Adyen\Payment\Model\OrderStatusConstants;
 
 class Order extends AbstractHelper
 {
@@ -364,6 +365,47 @@ class Order extends AbstractHelper
         } else {
             $this->adyenLogger->addAdyenNotification(
                 'No pre-authorised status is used so ignore',
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
+            );
+        }
+
+        return $order;
+    }
+
+    /**
+     * Set order status to "Credit Card Hold" after successful credit card authorization
+     *
+     * @param MagentoOrder $order
+     *
+     * @return MagentoOrder
+     */
+    public function setCreditCardHoldStatus(MagentoOrder $order): MagentoOrder
+    {
+        $eventLabel = OrderStatusConstants::CREDIT_CARD_HOLD_STATUS;
+        $status = $this->configHelper->getConfigData(
+            $eventLabel,
+            'adyen_abstract',
+            $order->getStoreId()
+        );
+        $possibleStates = Webhook::STATE_TRANSITION_MATRIX[$eventLabel];
+
+        if (!empty($status)) {
+            $order->setStatus($status);
+            $order = $this->setState($order, $status, $possibleStates);
+
+            $this->adyenLogger->addAdyenNotification(
+                'Order status is changed to CREDIT_CARD_HOLD status, status is ' . $status,
+                [
+                    'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
+                    'merchantReference' => $order->getPayment()->getData('entity_id')
+                ]
+            );
+        } else {
+            $this->adyenLogger->addAdyenNotification(
+                'No CREDIT_CARD_HOLD status is used so ignore',
                 [
                     'pspReference' => $order->getPayment()->getData('adyen_psp_reference'),
                     'merchantReference' => $order->getPayment()->getData('entity_id')
